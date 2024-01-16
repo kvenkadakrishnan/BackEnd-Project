@@ -2,8 +2,9 @@ package com.venkat.codengine.bll;
 
 import org.springframework.stereotype.Service;
 
-import com.venkat.codengine.Utils.FileStorage;
 import com.venkat.codengine.Utils.ProgrammingLanguage;
+import com.venkat.codengine.Utils.QueueService;
+import com.venkat.codengine.Utils.StorageService;
 import com.venkat.codengine.constants.SubmissionStatus;
 import com.venkat.codengine.dto.Submission;
 import com.venkat.codengine.dto.SubmissionResponse;
@@ -15,10 +16,13 @@ import com.venkat.codengine.repository.SubmissionsRepo;
 public class EngineBL {
 	private SubmissionsRepo submisionsRepo;
 	private ProblemsRepo problemsRepo;
+	private QueueService queueService;
+	
 
-	EngineBL(SubmissionsRepo submisionsRepo, ProblemsRepo problemsRepo) {
+	EngineBL(SubmissionsRepo submisionsRepo, ProblemsRepo problemsRepo, QueueService queueService) {
 		this.submisionsRepo = submisionsRepo;
 		this.problemsRepo = problemsRepo;
+		this.queueService = queueService;
 	}
 
 	public SubmissionResponse SubmitCode(Submission userSubmission) throws Exception {
@@ -31,7 +35,7 @@ public class EngineBL {
 		}
 
 		// Check the programming language
-		if (! ProgrammingLanguage.supportedLanguauges.contains(userSubmission.languageExtension.toLowerCase())) {
+		if (! ProgrammingLanguage.SUPPORTED_LANGUAGES.contains(userSubmission.languageExtension.toLowerCase())) {
 			throw new Exception("Unsupported Language");
 		}
 
@@ -42,7 +46,7 @@ public class EngineBL {
 
 		String codeFilePath;
 		try {
-			codeFilePath = FileStorage.SaveSubmittedCode(userSubmission.code);
+			codeFilePath = StorageService.SaveSubmittedCode(userSubmission.code);
 		} catch (Exception e) {
 			throw new Exception( "Check the code and try again");
 		}
@@ -58,12 +62,15 @@ public class EngineBL {
 			submissionResponse.SubmmissionId = submissions.getId();
 			submissionResponse.Message = SubmissionStatus.Received;
 		}catch (Exception e){
-			FileStorage.DeleteFile(codeFilePath);
+			StorageService.DeleteFile(codeFilePath);
 			throw new Exception("Unexpected error occured, please try again");
 		}
 		
-		// TODO add to queue
-
+		if(!this.queueService.sendMessage(String.valueOf(submissions.getId()))) {
+			StorageService.DeleteFile(codeFilePath);
+			throw new Exception("Unexpected error occured, please try again");
+		}
+		
 		return submissionResponse;
 	}
 }

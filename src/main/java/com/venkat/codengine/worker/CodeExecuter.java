@@ -1,0 +1,31 @@
+package com.venkat.codengine.worker;
+
+import java.io.File;
+
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.stereotype.Component;
+
+import com.venkat.codengine.worker.dto.ExecutionResult;
+
+@Component
+public abstract class CodeExecuter {
+	
+	protected String workSpace;
+	
+	public void setWorkspace(String workSpace) {
+		this.workSpace = workSpace;
+	}
+		
+	public abstract boolean SetExecutionFiles(String testCase,String testResult,String driverCode, String userCode );
+	
+	public abstract ExecutionResult CompileAndRun();
+	
+	public void ClearWorkSpace() {
+		File directory = new File(this.workSpace); 
+		try {
+			FileUtils.deleteDirectory(directory);
+		} catch (Exception e) {
+			// No implementation
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "messagequeue.name",
+    "type": "java.lang.String",
+    "description": "A description for 'messagequeue.name'"
+  },
+  {
+    "name": "workspace.location",
+    "type": "java.lang.String",
+    "description": "A description for 'workspace.location'"
+  }
+]}

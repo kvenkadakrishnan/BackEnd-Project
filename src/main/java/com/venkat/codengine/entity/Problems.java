@@ -31,4 +31,7 @@ public class Problems {
 	
 	@Column(name = "expoutputfile")
 	private String ExpOutputFile;
+	
+	@Column(name = "totaltestcase")
+	private int TotalTestCase;
 }

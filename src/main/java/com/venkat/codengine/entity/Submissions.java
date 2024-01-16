@@ -18,16 +18,13 @@ public class Submissions {
 	private long Id;
 
 	@Column(name = "problemid")
-	private long ProblemId;
+	private int ProblemId;
 	
 	@Column(name = "codefile")
 	private String CodeFile;
 
 	@Column(name = "testcasefile")
 	private String TestCaseFile;
-	
-	@Column(name = "message")
-	private String Message;
 	
 	@Column(name = "lang")
 	private String Lang;

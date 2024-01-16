@@ -1,0 +1,10 @@
+cloud:
+  aws:
+    region:
+      static: eu-north-1
+      auto: false
+    credentials:
+      access-key: AKIAV3Q5VTED4YNOXCPZ
+      secret-key: 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
+    end-point: 
+      uri: https://sqs.eu-north-1.amazonaws.com/402715416839/CompilerQueue

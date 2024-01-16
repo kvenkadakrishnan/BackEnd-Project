@@ -3,9 +3,9 @@ package com.venkat.codengine.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.venkat.codengine.entity.Problems;
+import com.venkat.codengine.entity.SubmissionResult;
 
 @Repository
-public interface ProblemsRepo extends JpaRepository<Problems, Integer>{
+public interface SubmissionResultRepo extends JpaRepository<SubmissionResult, Long>{
 
 }
