@@ -4,6 +4,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.venkat.codengine.Utils.StorageService;
+import com.venkat.codengine.constants.StatusMessage;
 import com.venkat.codengine.constants.SubmissionStatus;
 import com.venkat.codengine.dto.QueueMessageDTO;
 import com.venkat.codengine.entity.DriverCode;
@@ -41,54 +42,67 @@ public class SubmissionProcessor {
 		QueueMessageDTO messageDTO =  messageQueue.CheckMessageFromQueue();
 		
 		if(messageDTO == null) return;
-		
+		CodeExecuter codeExecuter = null;
+		Submissions submission = null;
+		SubmissionResult submissionResult = null;
 		try {
 			// Fetch the submission details
-			Submissions submission = this.submissionsRepo.getReferenceById(Long.getLong(messageDTO.Message));
+			submission = this.submissionsRepo.findById(Long.parseLong(messageDTO.Message)).get();
 			
 			// Fetch the problem details
-			Problems problem = this.problemsRepo.getReferenceById(submission.getProblemId());
+			Problems problem = this.problemsRepo.findById(submission.getProblemId()).get();
 			
 			//Fetch the driver code for the language 
 			DriverCode driverCode = this.driverCodeRepo.findByProblemIdAndLanguage(problem.getId(), submission.getLang()).get(0);
 			
 			// Get the code executor from code executor factory
-			CodeExecuter codeExecuter = CodeExecutorFactory.getCodeExecutor(submission.getLang());
+			codeExecuter = CodeExecutorFactory.getCodeExecutor(submission.getLang());
 			
 			String workspace = StorageService.CreateNewLocalWorkSpace(String.valueOf(submission.getId()));
-			
+						
 			codeExecuter.setWorkspace(workspace);
 			
 			// Initialize the code executor
-			boolean initializeExecuter = codeExecuter.SetExecutionFiles(problem.getHiddenTestCaseFile(), problem.getExpOutputFile(), driverCode.getDriverCodeFile(), submission.getCodeFile());
-
-			if(!initializeExecuter) throw new Exception("Initializing code executor exception");
+			codeExecuter.SetExecutionFiles(problem.getHiddenTestCaseFile(), problem.getExpOutputFile(), driverCode.getDriverCodeFile(), submission.getCodeFile());
 			
 			// Compile and run the code
 			ExecutionResult executionResult = codeExecuter.CompileAndRun();
 			
-			String resultFile = StorageService.SaveResult(executionResult.ResultFile);
-			
-			SubmissionResult submissionResult = new SubmissionResult();
+			submissionResult = new SubmissionResult();
 			submissionResult.setSubmissionId(submission.getId());
 			submissionResult.setMemory(executionResult.Memory);
 			submissionResult.setRuntime(executionResult.Runtime);
 			submissionResult.setStatus(executionResult.Status);
 			submissionResult.setTestCasePassed(executionResult.TestCasePassed);
-			submissionResult.setResultFile(resultFile);
+			
+			if(executionResult.ResultFile != null) {
+				String resultFile = StorageService.SaveResult(executionResult.ResultFile);
+				submissionResult.setResultFile(resultFile);
+			}
 			
 			this.submissionResultRepo.save(submissionResult);
 			
 			submission.setStatus(SubmissionStatus.Completed);
 			
 			this.submissionsRepo.save(submission);
-			
-			codeExecuter.ClearWorkSpace();
-			
-			messageQueue.DeleteMessageFromQueue(messageDTO);
+						
 		}
 		catch(Exception exception) {
-			// No implementation required
+			if(submission != null) {
+				submissionResult = new SubmissionResult();
+				submissionResult.setSubmissionId(submission.getId());
+				submissionResult.setStatus(StatusMessage.InternalError);
+				
+				this.submissionResultRepo.save(submissionResult);
+				
+				submission.setStatus(SubmissionStatus.Completed);
+				
+				this.submissionsRepo.save(submission);
+			}
+			
+		}finally {
+			if(codeExecuter != null) codeExecuter.ClearWorkSpace();
+			messageQueue.DeleteMessageFromQueue(messageDTO);
 		}
 		
 		

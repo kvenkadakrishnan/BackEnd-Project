@@ -45,18 +45,22 @@ public class StorageService {
 	}
 	
 	public static String SaveResult(File source) throws Exception{
-		String resultFile = String.format("%s%s.txt", FilePath.Results,source.getName());
+		String resultFile = FilePath.Results+source.getName();
 		Files.copy(source.toPath(),Path.of(resultFile));
 		return resultFile;
 	}
 	
 	public static String CreateNewLocalWorkSpace(String directoryName) throws Exception{
 		String workSpace = FilePath.WorkSpace + directoryName;
-		File directory = new File(directoryName); 
-		return directory.mkdir() ? workSpace : null;
+		File directory = new File(workSpace); 
+		if(directory.exists() || directory.mkdir() ) {
+			return workSpace ;	
+		}else {
+			throw new Exception("Error in creating workspace");
+		}
 	}
 	
-	public static void ClearDirectory(String directory) throws Exception {
+	public static void ClearDirectory12(String directory) throws Exception {
 		File fileDirectory = new File(directory); 
 		try {
 			FileUtils.cleanDirectory(fileDirectory);

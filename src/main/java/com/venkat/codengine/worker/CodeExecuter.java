@@ -16,7 +16,7 @@ public abstract class CodeExecuter {
 		this.workSpace = workSpace;
 	}
 		
-	public abstract boolean SetExecutionFiles(String testCase,String testResult,String driverCode, String userCode );
+	public abstract void SetExecutionFiles(String testCase,String testResult,String driverCode, String userCode ) throws Exception;
 	
 	public abstract ExecutionResult CompileAndRun();
 	

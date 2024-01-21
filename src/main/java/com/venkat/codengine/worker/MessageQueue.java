@@ -21,17 +21,23 @@ public class MessageQueue {
 	}
 
 	public QueueMessageDTO CheckMessageFromQueue() {
-		ReceiveMessageResult sqsMessage = this.sqs.receiveMessage(Queue);
+		try {
+			ReceiveMessageResult sqsMessage = this.sqs.receiveMessage(Queue);
 
-    	if(sqsMessage.getMessages().size() > 0) {
-    		Message message = sqsMessage.getMessages().get(0);
-    		QueueMessageDTO queueMessage = new QueueMessageDTO();
-    		queueMessage.Message = message.getBody();
-    		queueMessage.Receipt = message.getReceiptHandle();
-    		return queueMessage;
-    	}else {
-    		return null;
-    	}
+	    	if(sqsMessage.getMessages().size() > 0) {
+	    		Message message = sqsMessage.getMessages().get(0);
+	    		QueueMessageDTO queueMessage = new QueueMessageDTO();
+	    		queueMessage.Message = message.getBody();
+	    		queueMessage.Receipt = message.getReceiptHandle();
+	    		return queueMessage;
+	    	}else {
+	    		return null;
+	    	}
+		}catch (Exception e) {
+			System.out.println("Error in recieving message");
+			return null;
+		}
+		
 	}
 	
 	public void DeleteMessageFromQueue(QueueMessageDTO queueMessgae) {

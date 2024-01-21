@@ -17,9 +17,6 @@ public class Problems {
 	@Id
 	private int Id;
 	
-	@Column(name = "drivercodefile")
-	private long DriverCodeFile;
-	
 	@Column(name = "sampletestcasefile")
 	private String SampleTestCaseFile;
 

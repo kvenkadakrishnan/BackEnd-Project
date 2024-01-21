@@ -9,5 +9,6 @@ public class StatusMessage {
 	public static final int CompErrorCode = 31;
 	public static final String RunTimeError = "Run Time Error";
 	public static final int RtError = 22;
+	public static final String InternalError = "Internal Error";
 
 }
