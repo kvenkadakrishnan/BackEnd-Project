@@ -1,5 +1,8 @@
 package com.venkat.codeexecutor.worker.submissionprocessor;
 
+import java.io.FileInputStream;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,24 +18,35 @@ import com.venkat.codeexecutor.webserver.repository.DriverCodeRepo;
 import com.venkat.codeexecutor.webserver.repository.ProblemsRepo;
 import com.venkat.codeexecutor.webserver.repository.SubmissionResultRepo;
 import com.venkat.codeexecutor.webserver.repository.SubmissionsRepo;
+import com.venkat.codeexecutor.webserver.storageservice.IFileStorageService;
 import com.venkat.codeexecutor.worker.codeexecutor.CodeExecuter;
 import com.venkat.codeexecutor.worker.codeexecutor.CodeExecutorFactory;
 import com.venkat.codeexecutor.worker.dto.ExecutionResult;
-import com.venkat.codeexecutor.worker.utils.StorageService;
+import com.venkat.codeexecutor.worker.utils.FileUtilities;
 
 @Component
 public class SubmissionProcessor {
+	
+	@Value("${files.result}")
+	private String resultFolderName; 
+	
 	private MessageQueue messageQueue;
 	private SubmissionsRepo submissionsRepo;
 	private ProblemsRepo problemsRepo;
 	private DriverCodeRepo driverCodeRepo;
 	private SubmissionResultRepo submissionResultRepo;
-	public SubmissionProcessor(MessageQueue messageQueue,SubmissionsRepo submissionsRepo,ProblemsRepo problemsRepo, DriverCodeRepo driverCodeRepo, SubmissionResultRepo submissionResultRepo) {
+	private IFileStorageService fileStorageService;
+	private CodeExecutorFactory codeExecutorFactory;
+	
+	public SubmissionProcessor(MessageQueue messageQueue,SubmissionsRepo submissionsRepo,ProblemsRepo problemsRepo,CodeExecutorFactory codeExecutorFactory, 
+			DriverCodeRepo driverCodeRepo, SubmissionResultRepo submissionResultRepo,IFileStorageService fileStorageService) {
 		this.messageQueue = messageQueue;
 		this.problemsRepo = problemsRepo;
 		this.submissionsRepo = submissionsRepo;
 		this.driverCodeRepo = driverCodeRepo;
 		this.submissionResultRepo = submissionResultRepo;
+		this.fileStorageService = fileStorageService;
+		this.codeExecutorFactory = codeExecutorFactory;
 	}
 	
 	/**
@@ -58,9 +72,9 @@ public class SubmissionProcessor {
 			DriverCode driverCode = this.driverCodeRepo.findByProblemIdAndLanguage(problem.getId(), submission.getLang()).get(0);
 			
 			// Get the code executor from code executor factory
-			codeExecuter = CodeExecutorFactory.getCodeExecutor(submission.getLang());
+			codeExecuter = this.codeExecutorFactory.getCodeExecutor(submission.getLang());
 			
-			String workspace = StorageService.CreateNewLocalWorkSpace(String.valueOf(submission.getId()));
+			String workspace = FileUtilities.CreateNewLocalWorkSpace(String.valueOf(submission.getId()));
 						
 			codeExecuter.setWorkspace(workspace);
 			
@@ -78,7 +92,11 @@ public class SubmissionProcessor {
 			submissionResult.setTestCasePassed(executionResult.TestCasePassed);
 			
 			if(executionResult.ResultFile != null) {
-				String resultFile = StorageService.SaveResult(executionResult.ResultFile);
+				byte[] fileContent = new byte[(int)executionResult.ResultFile.length()];
+				FileInputStream fis = new FileInputStream(executionResult.ResultFile);
+				fis.read(fileContent);
+				fis.close();
+				String resultFile = this.fileStorageService.SaveText(fileContent,resultFolderName);
 				submissionResult.setResultFile(resultFile);
 			}
 			

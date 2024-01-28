@@ -13,5 +13,25 @@
     "name": "s3.name",
     "type": "java.lang.String",
     "description": "A description for 's3.name'"
+  },
+  {
+    "name": "files.result",
+    "type": "java.lang.String",
+    "description": "A description for 'files.result'"
+  },
+  {
+    "name": "files.problemsdata",
+    "type": "java.lang.String",
+    "description": "A description for 'files.problemsdata'"
+  },
+  {
+    "name": "files.submission",
+    "type": "java.lang.String",
+    "description": "A description for 'files.submission'"
+  },
+  {
+    "name": "disk.name",
+    "type": "java.lang.String",
+    "description": "A description for 'disk.name'"
   }
 ]}

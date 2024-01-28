@@ -14,7 +14,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
-@Component
 public class S3Service implements IFileStorageService{
 
 	private AmazonS3 s3;
@@ -28,7 +27,7 @@ public class S3Service implements IFileStorageService{
 	@Override
 	public String GetTextContent(String folder, String fileName) throws Exception{
 		try {
-			String fileText  =  s3.getObjectAsString(bucketName, fileName);
+			String fileText  =  s3.getObjectAsString(bucketName, folder+"/"+fileName);
 	        return fileText;
 		} catch (Exception e) {
 			throw e;
@@ -38,7 +37,7 @@ public class S3Service implements IFileStorageService{
 	@Override
 	public byte[] GetFileContent(String folder, String fileName) throws Exception {
 	
-		GetObjectRequest request = new GetObjectRequest(bucketName, fileName);
+		GetObjectRequest request = new GetObjectRequest(bucketName, folder+"/"+fileName);
         S3Object s3Object  =  s3.getObject(request);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         ObjectMetadata objectMetadata =  s3Object.getObjectMetadata();
@@ -57,17 +56,18 @@ public class S3Service implements IFileStorageService{
 	@Override
 	public String SaveText(byte[] fileContent, String folder) throws Exception {
 		try {
-		    String fileName = new Random().ints(97, 123)
+			String randomText = new Random().ints(97, 123)
 		    	      .limit(3)
 		    	      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
 		    	      .toString();
 
-		    fileName = "S"+fileName+String.valueOf(System.currentTimeMillis())+".txt";
+		    String fileName = randomText+String.valueOf(System.currentTimeMillis())+".txt";
+		    String fqfn = folder+"/"+fileName;
 		    ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(fileContent);
 			ObjectMetadata metadata = new ObjectMetadata();
 			metadata.setContentType("plain/text");
 			metadata.setContentLength(fileContent.length);
-			PutObjectRequest request = new PutObjectRequest(bucketName, fileName, arrayInputStream, metadata);
+			PutObjectRequest request = new PutObjectRequest(bucketName, fqfn, arrayInputStream, metadata);
             s3.putObject(request);
 			return fileName;
 		}catch(Exception exception) {
@@ -79,7 +79,7 @@ public class S3Service implements IFileStorageService{
 	public void DeleteFile(String folder, String fileName) {
 		// TODO Auto-generated method stub
 		try {
-			DeleteObjectRequest request = new DeleteObjectRequest(bucketName, fileName);
+			DeleteObjectRequest request = new DeleteObjectRequest(bucketName, folder+"/"+fileName);
 			s3.deleteObject(request);
 		}catch(Exception e) {
 			// No implementation required

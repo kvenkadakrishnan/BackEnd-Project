@@ -1,5 +1,6 @@
 package com.venkat.codeexecutor.webserver.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.venkat.codeexecutor.messagequeue.MessageQueue;
@@ -18,6 +19,9 @@ public class SubmissionBL {
 	private ProblemsRepo problemsRepo;
 	private MessageQueue queueService;
 	private IFileStorageService storageService;
+	
+	@Value("${files.submission}")
+	private String submissionFolderName;
 
 	SubmissionBL(SubmissionsRepo submisionsRepo, ProblemsRepo problemsRepo, MessageQueue queueService,IFileStorageService storageService) {
 		this.submisionsRepo = submisionsRepo;
@@ -45,26 +49,29 @@ public class SubmissionBL {
 			throw new Exception( "Problem not found");
 		}
 
+		// Save the submitted code in storage service
 		String codeFilePath;
 		try {
-			codeFilePath = this.storageService.SaveText(userSubmission.code,"");
+			codeFilePath = this.storageService.SaveText(userSubmission.code,submissionFolderName);
 		} catch (Exception e) {
-			throw new Exception( "Check the code and try again");
+			throw new Exception( "Unexpected error occured, please try again");
 		}
 
+		// Create submission entity
 		Submissions submissions = new Submissions();
 		submissions.setLang(userSubmission.languageExtension);
 		submissions.setCodeFile(codeFilePath);
 		submissions.setProblemId(userSubmission.problemId);
 		submissions.setStatus(SubmissionStatus.Waiting);
 
+		// Persist the submission entity in db and put the submission id into queue to be processed by the worker
 		try {
 			submissions = this.submisionsRepo.save(submissions);
 			submissionResponse.SubmmissionId = submissions.getId();
 			submissionResponse.Message = SubmissionStatus.Received;
 			this.queueService.SendMessage(String.valueOf(submissions.getId()));
 		}catch (Exception e){
-			this.storageService.DeleteFile("",codeFilePath);
+			this.storageService.DeleteFile(submissionFolderName,codeFilePath);
 			throw new Exception("Unexpected error occured, please try again");
 		}
 		

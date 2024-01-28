@@ -1,21 +1,18 @@
 package com.venkat.codeexecutor.worker.utils;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.FileOutputStream;
 
 import com.venkat.codeexecutor.webserver.constants.FilePath;
 
-public class StorageService {
-	
-	public static String SaveResult(File source) throws Exception{
-		String resultFile = FilePath.Results+source.getName();
-		Files.copy(source.toPath(),Path.of(resultFile));
-		return resultFile;
+public class FileUtilities {
+	public static void Copy(byte[] fileContent, String targetPath) throws Exception {
+		File targetFile = new File(targetPath);
+		targetFile.createNewFile();
+		FileOutputStream fos = new FileOutputStream(targetFile);
+		fos.write(fileContent);
+		fos.close();
 	}
-	
 	public static String CreateNewLocalWorkSpace(String directoryName) throws Exception{
 		String workSpace = FilePath.WorkSpace + directoryName;
 		File directory = new File(workSpace); 

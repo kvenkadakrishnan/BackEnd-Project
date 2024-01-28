@@ -11,31 +11,50 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.venkat.codeexecutor.webserver.constants.StatusMessage;
+import com.venkat.codeexecutor.webserver.storageservice.IFileStorageService;
 import com.venkat.codeexecutor.worker.dto.ExecutionResult;
+import com.venkat.codeexecutor.worker.utils.FileUtilities;
 
+@Component
 public class CPPExecutor extends CodeExecuter{
 
 	private static List<String> compileCommands = Arrays.asList("g++", "solution.cpp", "-o", "solution");
+	
+	@Autowired
+	private IFileStorageService fileStorageService;
+	
+	@Value("${files.problemsdata}")
+	private String problemsData;
+	
+	@Value("${files.submission}")
+	private String submissions;
+	
+	@Value("${files.result}")
+	private String result;
+	
 	@Override
 	public void SetExecutionFiles(String testCase, String testResult, String driverCode, String userCode) throws Exception {
 		FileUtils.cleanDirectory(new File(this.workSpace));
 		String testCaseCopy = this.workSpace+"\\testcase.txt";
 		String testResultCopy = this.workSpace+"\\testresult.txt";
-		String solutionFilePath = this.workSpace+"\\solution.cpp";
+		String codeFilePath = this.workSpace+"\\solution.cpp";
 		String resultFilePath = this.workSpace+"\\result.txt";
 		
 		try {
-			Files.copy(Path.of(testCase), Path.of(testCaseCopy));
-			Files.copy(Path.of(testResult), Path.of(testResultCopy));
+			FileUtilities.Copy(this.fileStorageService.GetFileContent(problemsData, testCase), testCaseCopy);
+			FileUtilities.Copy(this.fileStorageService.GetFileContent(problemsData, testResult), testResultCopy);
 			File resultFile = new File(resultFilePath);
 			resultFile.createNewFile();
-			String header = Files.readString(Path.of("D:\\LeetCodeFiles\\HeaderFiles\\header.txt"));
-		    String mainFunction = Files.readString(Path.of(driverCode));
-		    String solutionFunction = Files.readString(Path.of(userCode));
-			File solutionFile = new File(solutionFilePath);
-	        PrintWriter printWriter = new PrintWriter(solutionFile);
+			String header = Files.readString(Path.of("D:\\S3 CodeExecutor\\ProblemsData\\header.txt"));
+		    String mainFunction = this.fileStorageService.GetTextContent(problemsData, driverCode);
+		    String solutionFunction = this.fileStorageService.GetTextContent(submissions, userCode);
+			File codeFile = new File(codeFilePath);
+	        PrintWriter printWriter = new PrintWriter(codeFile);
 	        printWriter.write(header+solutionFunction+mainFunction);
 	        printWriter.flush();
 	        printWriter.close();
@@ -82,19 +101,19 @@ public class CPPExecutor extends CodeExecuter{
 		}
 	}
 	
-	private static String read(InputStream inputStream) {
+	private static String read(InputStream inputStream) throws Exception {
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 			StringBuilder builder = new StringBuilder();
 			String line = null;
-			while((line = reader.readLine()) != null) {
+			while(reader.ready() && (line = reader.readLine()) != null) {
 				builder.append(line);
 				builder.append(System.getProperty("line.separator"));
 			}
 			String result = builder.toString();
 			return result;
 		}catch(Exception e) {
-			return e.getMessage();
+			throw e;
 		}
 	}
 
