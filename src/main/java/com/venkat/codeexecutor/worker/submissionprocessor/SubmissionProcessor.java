@@ -1,15 +1,15 @@
 package com.venkat.codeexecutor.worker.submissionprocessor;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.venkat.codeexecutor.messagequeue.MessageQueue;
 import com.venkat.codeexecutor.webserver.constants.StatusMessage;
 import com.venkat.codeexecutor.webserver.constants.SubmissionStatus;
-import com.venkat.codeexecutor.webserver.dto.QueueMessageDTO;
 import com.venkat.codeexecutor.webserver.entity.DriverCode;
 import com.venkat.codeexecutor.webserver.entity.Problems;
 import com.venkat.codeexecutor.webserver.entity.SubmissionResult;
@@ -30,7 +30,6 @@ public class SubmissionProcessor {
 	@Value("${files.result}")
 	private String resultFolderName; 
 	
-	private MessageQueue messageQueue;
 	private SubmissionsRepo submissionsRepo;
 	private ProblemsRepo problemsRepo;
 	private DriverCodeRepo driverCodeRepo;
@@ -38,9 +37,8 @@ public class SubmissionProcessor {
 	private IFileStorageService fileStorageService;
 	private CodeExecutorFactory codeExecutorFactory;
 	
-	public SubmissionProcessor(MessageQueue messageQueue,SubmissionsRepo submissionsRepo,ProblemsRepo problemsRepo,CodeExecutorFactory codeExecutorFactory, 
+	public SubmissionProcessor(SubmissionsRepo submissionsRepo,ProblemsRepo problemsRepo,CodeExecutorFactory codeExecutorFactory, 
 			DriverCodeRepo driverCodeRepo, SubmissionResultRepo submissionResultRepo,IFileStorageService fileStorageService) {
-		this.messageQueue = messageQueue;
 		this.problemsRepo = problemsRepo;
 		this.submissionsRepo = submissionsRepo;
 		this.driverCodeRepo = driverCodeRepo;
@@ -52,18 +50,14 @@ public class SubmissionProcessor {
 	/**
 	 * Checks repeatedly for new submission and executed the code.
 	 */
-	@Scheduled(fixedDelay = 1)
-	public void RunSubmission() {
-		// Check the submission in the queue
-		QueueMessageDTO messageDTO =  messageQueue.CheckMessageFromQueue();
-		
-		if(messageDTO == null) return;
+	public void RunSubmission(Long submissionId) throws Exception{
 		CodeExecuter codeExecuter = null;
 		Submissions submission = null;
 		SubmissionResult submissionResult = null;
+		String workspace = null;
 		try {
 			// Fetch the submission details
-			submission = this.submissionsRepo.findById(Long.parseLong(messageDTO.Message)).get();
+			submission = this.submissionsRepo.findById(submissionId).get();
 			
 			// Fetch the problem details
 			Problems problem = this.problemsRepo.findById(submission.getProblemId()).get();
@@ -74,15 +68,13 @@ public class SubmissionProcessor {
 			// Get the code executor from code executor factory
 			codeExecuter = this.codeExecutorFactory.getCodeExecutor(submission.getLang());
 			
-			String workspace = FileUtilities.CreateNewLocalWorkSpace(String.valueOf(submission.getId()));
-						
-			codeExecuter.setWorkspace(workspace);
-			
+			workspace = FileUtilities.CreateNewLocalWorkSpace(String.valueOf(submission.getId()));
+									
 			// Initialize the code executor
-			codeExecuter.SetExecutionFiles(problem.getHiddenTestCaseFile(), problem.getExpOutputFile(), driverCode.getDriverCodeFile(), submission.getCodeFile());
+			codeExecuter.SetExecutionFiles(workspace,problem.getHiddenTestCaseFile(), problem.getExpOutputFile(), driverCode.getDriverCodeFile(), submission.getCodeFile());
 			
 			// Compile and run the code
-			ExecutionResult executionResult = codeExecuter.CompileAndRun();
+			ExecutionResult executionResult = codeExecuter.CompileAndRun(workspace);
 			
 			submissionResult = new SubmissionResult();
 			submissionResult.setSubmissionId(submission.getId());
@@ -105,7 +97,8 @@ public class SubmissionProcessor {
 			submission.setStatus(SubmissionStatus.Completed);
 			
 			this.submissionsRepo.save(submission);
-						
+			 
+			this.ClearWorspace(workspace);
 		}
 		catch(Exception exception) {
 			if(submission != null) {
@@ -119,12 +112,17 @@ public class SubmissionProcessor {
 				
 				this.submissionsRepo.save(submission);
 			}
-			
-		}finally {
-			if(codeExecuter != null) codeExecuter.ClearWorkSpace();
-			messageQueue.DeleteMessageFromQueue(messageDTO);
+			this.ClearWorspace(workspace);
+			throw exception;
 		}
 		
-		
+	}
+	
+	private void ClearWorspace(String workspace) {
+		try {
+			FileUtils.deleteDirectory(new File(workspace));
+		} catch (IOException e) {
+			// Not Required
+		}
 	}
 }

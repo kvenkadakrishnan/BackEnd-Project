@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;

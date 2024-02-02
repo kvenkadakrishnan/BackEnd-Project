@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,6 @@ public class CPPExecutor extends CodeExecuter{
 
 	private static List<String> compileCommands = Arrays.asList("g++", "solution.cpp", "-o", "solution");
 	
-	@Autowired
 	private IFileStorageService fileStorageService;
 	
 	@Value("${files.problemsdata}")
@@ -37,13 +35,17 @@ public class CPPExecutor extends CodeExecuter{
 	@Value("${files.result}")
 	private String result;
 	
+	public CPPExecutor(IFileStorageService fileStorageService) {
+		this.fileStorageService = fileStorageService;
+	}
+	
 	@Override
-	public void SetExecutionFiles(String testCase, String testResult, String driverCode, String userCode) throws Exception {
-		FileUtils.cleanDirectory(new File(this.workSpace));
-		String testCaseCopy = this.workSpace+"\\testcase.txt";
-		String testResultCopy = this.workSpace+"\\testresult.txt";
-		String codeFilePath = this.workSpace+"\\solution.cpp";
-		String resultFilePath = this.workSpace+"\\result.txt";
+	public void SetExecutionFiles(String workSpace,String testCase, String testResult, String driverCode, String userCode) throws Exception {
+		FileUtils.cleanDirectory(new File(workSpace));
+		String testCaseCopy = workSpace+"\\testcase.txt";
+		String testResultCopy = workSpace+"\\testresult.txt";
+		String codeFilePath = workSpace+"\\solution.cpp";
+		String resultFilePath = workSpace+"\\result.txt";
 		
 		try {
 			FileUtilities.Copy(this.fileStorageService.GetFileContent(problemsData, testCase), testCaseCopy);
@@ -65,9 +67,9 @@ public class CPPExecutor extends CodeExecuter{
 	}
 
 	@Override
-	public ExecutionResult CompileAndRun() {
+	public ExecutionResult CompileAndRun(String workSpace) {
 		ExecutionResult executionResult = new ExecutionResult();
-		File resultFile = new File(this.workSpace+"\\result.txt");
+		File resultFile = new File(workSpace+"\\result.txt");
 		executionResult.ResultFile = resultFile;
 		try {
 			 // Create process builder 
@@ -79,7 +81,7 @@ public class CPPExecutor extends CodeExecuter{
 				return executionResult;
 			}
 			long starttime = System.currentTimeMillis();
-			processBuilder = new ProcessBuilder(this.workSpace+"\\solution.exe").directory(new File(this.workSpace))
+			processBuilder = new ProcessBuilder(workSpace+"\\solution.exe").directory(new File(workSpace))
 					.redirectErrorStream(true);
 
 	        Process runningProcess = processBuilder.start();
