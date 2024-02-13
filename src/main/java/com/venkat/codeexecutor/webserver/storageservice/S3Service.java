@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -13,6 +14,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
+@Component
 public class S3Service implements IFileStorageService{
 
 	private AmazonS3 s3;

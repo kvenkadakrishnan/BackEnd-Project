@@ -2,7 +2,6 @@ package com.venkat.codeexecutor.worker.submissionprocessor;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +50,7 @@ public class SubmissionProcessor {
 	 * Checks repeatedly for new submission and executed the code.
 	 */
 	public void RunSubmission(Long submissionId) throws Exception{
+		System.out.println("Started processing submission ID:" + submissionId.toString());
 		CodeExecuter codeExecuter = null;
 		Submissions submission = null;
 		SubmissionResult submissionResult = null;
@@ -101,6 +101,7 @@ public class SubmissionProcessor {
 			this.ClearWorspace(workspace);
 		}
 		catch(Exception exception) {
+			System.out.println("Error in Submission processor: "+exception.getMessage());
 			if(submission != null) {
 				submissionResult = new SubmissionResult();
 				submissionResult.setSubmissionId(submission.getId());
@@ -121,7 +122,7 @@ public class SubmissionProcessor {
 	private void ClearWorspace(String workspace) {
 		try {
 			FileUtils.deleteDirectory(new File(workspace));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// Not Required
 		}
 	}

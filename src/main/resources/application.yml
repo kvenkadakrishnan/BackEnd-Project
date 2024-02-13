@@ -4,7 +4,7 @@ cloud:
       static: eu-north-1
       auto: false
     credentials:
-      access-key: access-key-should-not-be-commied-to-git-hub
-      secret-key: secret-key-should-not-be-commied-to-git-hub
+      access-key: ####
+      secret-key: ####
     end-point: 
-      uri: https://sqs.eu-north-1.amazonaws.com/accountid/queuename
+      uri: https://sqs.eu-north-1.amazonaws.com/####/CompilerQueue

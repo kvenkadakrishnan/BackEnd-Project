@@ -19,6 +19,7 @@ public class FileUtilities {
 		if(directory.exists() || directory.mkdir() ) {
 			return workSpace ;	
 		}else {
+			System.out.println("Error in file utils");
 			throw new Exception("Error in creating workspace");
 		}
 	}
