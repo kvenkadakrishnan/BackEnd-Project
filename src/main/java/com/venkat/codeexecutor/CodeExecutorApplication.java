@@ -1,13 +1,13 @@
-package com.venkat.codengine;
+package com.venkat.codeexecutor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CodEngineApplication {
+public class CodeExecutorApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CodEngineApplication.class, args);
+		SpringApplication.run(CodeExecutorApplication.class, args);
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.venkat.codengine.models;
+package com.venkat.codeexecutor.webserver.dto;
 
 public class Submission {
 	public String code;
