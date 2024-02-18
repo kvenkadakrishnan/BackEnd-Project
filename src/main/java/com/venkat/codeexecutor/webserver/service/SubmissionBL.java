@@ -8,6 +8,7 @@ import com.venkat.codeexecutor.webserver.constants.ProgrammingLanguage;
 import com.venkat.codeexecutor.webserver.constants.SubmissionStatus;
 import com.venkat.codeexecutor.webserver.dto.Submission;
 import com.venkat.codeexecutor.webserver.dto.SubmissionResponse;
+import com.venkat.codeexecutor.webserver.entity.Problems;
 import com.venkat.codeexecutor.webserver.entity.SubmissionResult;
 import com.venkat.codeexecutor.webserver.entity.Submissions;
 import com.venkat.codeexecutor.webserver.repository.ProblemsRepo;
@@ -20,6 +21,9 @@ public class SubmissionBL {
 	
 	@Value("${files.result}")
 	private String result;
+	
+	@Value("${files.problemsdata}")
+	private String problemsData;
 	
 	private SubmissionsRepo submisionsRepo;
 	private ProblemsRepo problemsRepo;
@@ -97,6 +101,18 @@ public class SubmissionBL {
 		}catch (Exception e) {
 			System.out.println("Error in Submission bl: "+ e.getMessage());
 			return "Pending execution..";
+		}
+	}
+	
+	public String GetProblem(int problemId) {
+		Problems problem = null;
+		try {
+			problem = this.problemsRepo.findById(problemId).get();
+			if(problem == null) return "No Problem found with the id: "+String.valueOf(problemId);
+			return this.storageService.GetTextContent(this.problemsData, problem.getDescriptionFile());
+		}catch (Exception e) {
+			System.out.println("Error in Submission bl: "+ e.getMessage());
+			return "No Problem found with the id: "+String.valueOf(problemId);
 		}
 	}
 }

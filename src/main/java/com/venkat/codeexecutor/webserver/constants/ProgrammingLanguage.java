@@ -5,5 +5,5 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ProgrammingLanguage {
-	public static final List<String> SUPPORTED_LANGUAGES = new ArrayList<String>(Arrays.asList("cpp"));
+	public static final List<String> SUPPORTED_LANGUAGES = new ArrayList<String>(Arrays.asList("cpp","java"));
 }

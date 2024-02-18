@@ -34,5 +34,9 @@ public class SubmissionsController {
 		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
 	
-	
+	@GetMapping("problem")
+	public ResponseEntity<Object> GetProblem(int problemId){
+		String result = this.submissionBl.GetProblem(problemId);
+		return ResponseEntity.status(HttpStatus.OK).body(result);
+	}
 }
