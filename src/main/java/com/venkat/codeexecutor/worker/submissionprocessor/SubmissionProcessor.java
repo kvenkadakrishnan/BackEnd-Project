@@ -47,7 +47,9 @@ public class SubmissionProcessor {
 	}
 	
 	/**
-	 * Checks repeatedly for new submission and executed the code.
+	 * Executes the user submitted code
+	 * @param submissionId The id of the submission.
+	 * @throws Exception
 	 */
 	public void RunSubmission(Long submissionId) throws Exception{
 		System.out.println("Started processing submission ID:" + submissionId.toString());
@@ -119,6 +121,10 @@ public class SubmissionProcessor {
 		
 	}
 	
+	/**
+	 * Clears the workspace after completion of the task.
+	 * @param workspace The workspace path.
+	 */
 	private void ClearWorspace(String workspace) {
 		try {
 			FileUtils.deleteDirectory(new File(workspace));
