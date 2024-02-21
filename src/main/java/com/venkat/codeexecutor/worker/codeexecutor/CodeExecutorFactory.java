@@ -12,6 +12,9 @@ public class CodeExecutorFactory {
 		if(type.equalsIgnoreCase("CPP")) {
 			return context.getBean(CPPExecutor.class);
 		}
+		if(type.equalsIgnoreCase("JAVA")) {
+			return context.getBean(JavaExecutor.class);
+		}
 		throw new Exception("No code executor found for the type "+type);
 	}
 }

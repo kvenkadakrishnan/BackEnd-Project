@@ -1,9 +1,6 @@
 package com.venkat.codeexecutor.worker.codeexecutor;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -19,10 +16,13 @@ import com.venkat.codeexecutor.worker.dto.ExecutionResult;
 import com.venkat.codeexecutor.worker.utils.FileUtilities;
 
 @Component
-public class CPPExecutor extends CodeExecuter{
+public class JavaExecutor extends CodeExecuter{
 
-	private static List<String> compileCommands = Arrays.asList("g++", "solution.cpp", "-o", "solution");
+	private static List<String> compileCommands = Arrays.asList("javac", "Drivercode.java");
 	
+	private static List<String> runCommands = Arrays.asList("java", "Drivercode");
+
+
 	private IFileStorageService fileStorageService;
 	
 	@Value("${files.problemsdata}")
@@ -34,17 +34,18 @@ public class CPPExecutor extends CodeExecuter{
 	@Value("${files.result}")
 	private String result;
 	
-	public CPPExecutor(IFileStorageService fileStorageService) {
+	public JavaExecutor(IFileStorageService fileStorageService) {
 		this.fileStorageService = fileStorageService;
 	}
 	
 	@Override
-	public void SetExecutionFiles(String workSpace,String testCase, String testResult, String driverCode, String userCode) throws Exception {
+	public void SetExecutionFiles(String workSpace, String testCase, String testResult, String driverCode,
+			String userCode) throws Exception {
 		System.out.println("Creating Execution Files..");
 		FileUtils.cleanDirectory(new File(workSpace));
 		String testCaseCopy = workSpace+"/testcase.txt";
 		String testResultCopy = workSpace+"/testresult.txt";
-		String codeFilePath = workSpace+"/solution.cpp";
+		String codeFilePath = workSpace+"/Drivercode.java";
 		String resultFilePath = workSpace+"/result.txt";
 		String stderr = workSpace+"/stderr.txt";
 		String stdout = workSpace+"/stdout.txt";
@@ -55,12 +56,12 @@ public class CPPExecutor extends CodeExecuter{
 			resultFile.createNewFile();
 			new File(stderr).createNewFile();
 			new File(stdout).createNewFile();
-			String header = this.fileStorageService.GetTextContent(problemsData, "cppheader.txt");
-		    String mainFunction = this.fileStorageService.GetTextContent(problemsData, driverCode);
-		    String solutionFunction = this.fileStorageService.GetTextContent(submissions, userCode);
+			String header = this.fileStorageService.GetTextContent(problemsData, "javaheader.txt");
+		    String driverClass = this.fileStorageService.GetTextContent(problemsData, driverCode);
+		    String solutionClass = this.fileStorageService.GetTextContent(submissions, userCode);
 			File codeFile = new File(codeFilePath);
 	        PrintWriter printWriter = new PrintWriter(codeFile);
-	        printWriter.write(header+solutionFunction+mainFunction);
+	        printWriter.write(header+driverClass+solutionClass);
 	        printWriter.flush();
 	        printWriter.close();
 			return;
@@ -68,6 +69,7 @@ public class CPPExecutor extends CodeExecuter{
 			System.out.println("Error in creating execution files..");
 			throw new Exception("Initializing code executor exception");
 		}
+		
 	}
 
 	@Override
@@ -94,7 +96,7 @@ public class CPPExecutor extends CodeExecuter{
 				return executionResult;
 			}
 			long starttime = System.currentTimeMillis();
-			processBuilder = new ProcessBuilder("./solution").directory(new File(workSpace))
+			processBuilder = new ProcessBuilder(runCommands).directory(new File(workSpace))
 					.redirectError(stderr).redirectOutput(stdout);
 
 	        Process runningProcess = processBuilder.start();
@@ -114,7 +116,7 @@ public class CPPExecutor extends CodeExecuter{
 				return executionResult;
 	        }	
 		}catch (Exception e) {
-			System.out.println("Error in CPP executor"+e.getMessage());
+			System.out.println("Error in Java executor"+e.getMessage());
 
 			executionResult.Status = StatusMessage.InternalError ;
 			PrintWriter printWriter;
@@ -128,23 +130,6 @@ public class CPPExecutor extends CodeExecuter{
 			}
 	        
 			return executionResult;
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private static String read(InputStream inputStream) throws Exception {
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-			StringBuilder builder = new StringBuilder();
-			String line = null;
-			while(reader.ready() && (line = reader.readLine()) != null) {
-				builder.append(line);
-				builder.append(System.getProperty("line.separator"));
-			}
-			String result = builder.toString();
-			return result;
-		}catch(Exception e) {
-			throw e;
 		}
 	}
 
