@@ -14,6 +14,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
+/**
+ * Contains S3 service implementation that helps to get and save file content.
+ */
 @Component
 public class S3Service implements IFileStorageService{
 

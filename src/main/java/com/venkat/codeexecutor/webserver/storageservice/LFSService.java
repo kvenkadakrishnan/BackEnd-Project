@@ -10,6 +10,9 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Contains local file system service that helps to get and save files.
+ */
 public class LFSService implements IFileStorageService {
 
 	@Value("${disk.name}")

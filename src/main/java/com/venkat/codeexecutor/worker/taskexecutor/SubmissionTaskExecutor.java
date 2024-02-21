@@ -15,6 +15,11 @@ public class SubmissionTaskExecutor {
 		this.submissionProcessor = submissionProcessor;
 	}
 		
+	/**
+	 * Executes the task assigned by the SQS Daemon process.
+	 * @param msg SQS message body contains submission id.
+	 * @return Whether the task is executed successfully or not.
+	 */
 	@PostMapping("/")
 	public ResponseEntity<Object> Execute(@RequestBody  String msg) {
 		try {
