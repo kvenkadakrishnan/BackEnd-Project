@@ -43,12 +43,12 @@ public class JavaExecutor extends CodeExecuter{
 			String userCode) throws Exception {
 		System.out.println("Creating Execution Files..");
 		FileUtils.cleanDirectory(new File(workSpace));
-		String testCaseCopy = workSpace+"\\testcase.txt";
-		String testResultCopy = workSpace+"\\testresult.txt";
-		String codeFilePath = workSpace+"\\Drivercode.java";
-		String resultFilePath = workSpace+"\\result.txt";
-		String stderr = workSpace+"\\stderr.txt";
-		String stdout = workSpace+"\\stdout.txt";
+		String testCaseCopy = workSpace+"/testcase.txt";
+		String testResultCopy = workSpace+"/testresult.txt";
+		String codeFilePath = workSpace+"/Drivercode.java";
+		String resultFilePath = workSpace+"/result.txt";
+		String stderr = workSpace+"/stderr.txt";
+		String stdout = workSpace+"/stdout.txt";
 		try {
 			FileUtilities.Copy(this.fileStorageService.GetFileContent(problemsData, testCase), testCaseCopy);
 			FileUtilities.Copy(this.fileStorageService.GetFileContent(problemsData, testResult), testResultCopy);
@@ -76,9 +76,9 @@ public class JavaExecutor extends CodeExecuter{
 	public ExecutionResult CompileAndRun(String workSpace) {
 		System.out.println("Started compile and run process");
 		ExecutionResult executionResult = new ExecutionResult();
-		File resultFile = new File(workSpace+"\\result.txt");
-		File stderr = new File(workSpace+"\\stderr.txt");
-		File stdout = new File(workSpace+"\\stdout.txt");
+		File resultFile = new File(workSpace+"/result.txt");
+		File stderr = new File(workSpace+"/stderr.txt");
+		File stdout = new File(workSpace+"/stdout.txt");
 		executionResult.ResultFile = resultFile;
 		try {
 			 // Create process builder 
